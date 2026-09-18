@@ -1,0 +1,23 @@
+# Local machine config (paths to your UT99 install, Kenney kit, etc.)
+ut99-mapgen.conf
+
+# The UT99 installation itself. Proprietary: you must own a copy.
+# Point UT99_DIR at yours, or symlink/copy it here. See SETUP.md.
+ut/
+
+# OldUnreal SDK + Linux patch tarballs. Downloaded, not ours to redistribute.
+vendor/
+
+# Third-party art packs (Kenney's CC0 kit and friends) are downloaded, not
+# vendored, so the repo stays small and the upstream stays canonical.
+assets/
+
+# Scratch: generated .t3d, exec scripts, the texture catalog built from your
+# own game files, decompiled maps. All reproducible; see SETUP.md.
+work/
+
+# Screenshots are rendered from your own install and show its artwork.
+shots/
+
+__pycache__/
+*.pyc

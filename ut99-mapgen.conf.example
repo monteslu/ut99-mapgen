@@ -1,0 +1,15 @@
+# Copy to ut99-mapgen.conf (gitignored) and edit, or use the equivalent
+# environment variables: UT99_DIR, UT99_PREFS, KENNEY_DIR.
+#
+# All three are optional - the toolkit checks the usual Steam/GOG/itch
+# locations first. Run `python3 tools/paths.py` to see what it found.
+
+# Your Unreal Tournament install: the dir containing System/, Maps/, Textures/.
+# Must have the OldUnreal 469 Linux patch applied (System64/ucc-bin-amd64).
+# UT99_DIR = /home/you/games/UnrealTournament
+
+# Where the Linux build keeps its ini and compiled packages. Defaults to ~/.utpg
+# UT99_PREFS = /home/you/.utpg
+
+# Kenney's Furniture Kit (CC0). Only needed to rebuild the office props.
+# KENNEY_DIR = /home/you/assets/kenney_furniture-kit/Models/OBJ format
