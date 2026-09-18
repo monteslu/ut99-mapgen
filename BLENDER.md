@@ -26,7 +26,7 @@ Set each object's role in the **UT99 Brush** panel:
 
 | property | meaning |
 |---|---|
-| CSG | *Subtract* carves a room (default); *Add* puts solid back — pillars, ledges |
+| CSG | *Subtract* carves a room (default); *Add* puts solid back, for pillars and ledges |
 | Texture | `Package.Texture` for faces with no material |
 | Tex Scale | how large the texture appears; 2 halves the tiling |
 
@@ -50,8 +50,8 @@ import/export dialog, if you prefer a different ratio.
 ## Convex only
 
 UE1's CSG needs convex brushes. The exporter **refuses** concave meshes rather
-than letting the engine build sealed-looking geometry with holes in the BSP —
-split an L-shaped room into two boxes instead.
+than letting the engine build sealed-looking geometry with holes in the BSP.
+Split an L-shaped room into two boxes instead.
 
 ## Round trip
 
@@ -60,8 +60,8 @@ split an L-shaped room into two boxes instead.
 python3 tools/from_blender.py scene.t3d DM-MyMap --shot
 ```
 
-`from_blender.py` adds what a `.t3d` cannot carry — PlayerStarts and a light
-grid sized from the rooms themselves — then compiles and optionally screenshots
+`from_blender.py` adds what a `.t3d` cannot carry (PlayerStarts and a light
+grid sized from the rooms themselves) then compiles and optionally screenshots
 it.
 
 ## Reading Epic's maps

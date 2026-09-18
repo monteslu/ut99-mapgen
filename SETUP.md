@@ -2,7 +2,7 @@
 
 ## 1. Unreal Tournament
 
-You need a real UT99 install — Steam, GOG, itch, or the original discs all
+You need a real UT99 install. Steam, GOG, itch, or the original discs all
 work. **Nothing from the game ships in this repo**; the toolkit reads whatever
 copy you own.
 
@@ -25,7 +25,7 @@ cd ../ut && tar xjf ../vendor/OldUnreal-UTPatch469e-Linux-amd64.tar.bz2
 chmod +x System64/ucc-bin-amd64 System64/ut-bin-amd64
 ```
 
-Check the latest release tag first — `v469e` was current when this was written.
+Check the latest release tag first; `v469e` was current when this was written.
 
 Optionally also fetch the SDK (`OldUnreal-UTPatch469e-SDK.tar.bz2`) into
 `vendor/`. It is not needed to build maps, but it contains the complete engine
@@ -94,7 +94,7 @@ Several files are deliberately absent because they are derived from your game
 install or from third-party art. All of them rebuild automatically or with one
 command.
 
-## The texture catalog — automatic
+## The texture catalog (automatic)
 
 `work/textures.json` indexes every stock texture (name + pixel dimensions) by
 parsing your own `.utx` packages. It is **built on first use**, takes about
@@ -109,7 +109,7 @@ python3 tools/textures.py              # list packages
 Rebuild it after installing a new texture pack. If it looks wrong, delete
 `work/textures.json` and any command will regenerate it.
 
-## The office textures — one command
+## The office textures (one command)
 
 The ten generated office textures (carpet, ceiling tile, cubicle fabric,
 whiteboard, elevator doors, fluorescent panel) are written as 8-bit PCX by
@@ -120,10 +120,10 @@ stored:
 python3 tools/pcx.py ut/OfficeProps/Textures
 ```
 
-Edit the generator functions in `tools/pcx.py` to change colours or patterns —
-each is a small procedural drawing routine.
+Edit the generator functions in `tools/pcx.py` to change colours or patterns.
+Each is a small procedural drawing routine.
 
-## The furniture props — needs the CC0 kit
+## The furniture props (needs the CC0 kit)
 
 The office map uses 16 models from Kenney's **Furniture Kit**, which is
 [CC0 / public domain](https://kenney.nl/assets/furniture-kit). It is not
@@ -146,10 +146,10 @@ This writes `.3d` meshes and UnrealScript classes into
 `ut/OfficeProps/`, generates the shared palette texture, and compiles
 `OfficeProps.u` into your prefs directory.
 
-Any CC0 OBJ works — edit the `PROPS` table in `tools/make_props.py` to add
+Any CC0 OBJ works. Edit the `PROPS` table in `tools/make_props.py` to add
 models, giving each a target width in UT units (a player is 78 units tall).
 
-## Screenshots — rendered on demand
+## Screenshots (rendered on demand)
 
 `shots/` is gitignored because its contents are renders of your own install's
 artwork. Regenerate any of them:
@@ -167,7 +167,7 @@ Screenshots need `xdotool` and ImageMagick's `import`:
 sudo apt install xdotool imagemagick     # or your distro's equivalent
 ```
 
-## Blender addon — copy it in
+## Blender addon (copy it in)
 
 ```bash
 cp blender/ut99_t3d.py ~/.config/blender/*/scripts/addons/
@@ -183,20 +183,20 @@ Then enable *UT99 T3D (Unreal Engine 1)* in Preferences → Add-ons. See
 
 # Troubleshooting
 
-**`Could not find a UT99 installation`** — set `UT99_DIR`, or check
+**`Could not find a UT99 installation`**: set `UT99_DIR`, or check
 `python3 tools/paths.py` for what it looked at.
 
-**`No ucc-bin-amd64 under ...`** — the 469 patch is not applied, or was
+**`No ucc-bin-amd64 under ...`**: the 469 patch is not applied, or was
 extracted to the wrong place. It must land in `System64/` inside the game dir.
 
-**`Can't find file for package WinDrv`** — set
+**`Can't find file for package WinDrv`**: set
 `ViewportManager=SDLDrv.SDLClient`, step 4 above.
 
-**`Can't find file for package <yours>`** on every map build — a broken
+**`Can't find file for package <yours>`** on every map build: a broken
 `EditPackages=` entry in the ini. Remove it if that package does not compile;
 one bad entry breaks *all* later builds.
 
-**Screenshots show the wrong map, or a map that failed to spawn** — a stale
+**Screenshots show the wrong map, or a map that failed to spawn**: a stale
 game process is holding the display. UT99 only writes its log at exit, so the
 log will still show the *previous* map. The tools `pkill` first; if you are
 launching by hand, do the same.

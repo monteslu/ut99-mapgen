@@ -48,7 +48,7 @@ binary. Everything here is built on it.
 
 ## Quick start
 
-You need a UT99 install and the OldUnreal 469 Linux patch — see
+You need a UT99 install and the OldUnreal 469 Linux patch. See
 **[SETUP.md](SETUP.md)**, which also covers regenerating everything this repo
 deliberately does not ship.
 
@@ -60,11 +60,11 @@ python3 maps/dm_crucible.py     # build the example deathmatch map
 
 ## Documentation
 
-- **[SETUP.md](SETUP.md)** — install, configure, regenerate generated files
-- **[GUIDE.md](GUIDE.md)** — how to build a map, with the API reference
-- **[PIPELINE.md](PIPELINE.md)** — how the engine internals actually work, and
+- **[SETUP.md](SETUP.md)**: install, configure, regenerate generated files
+- **[GUIDE.md](GUIDE.md)**: how to build a map, with the API reference
+- **[PIPELINE.md](PIPELINE.md)**: how the engine internals actually work, and
   the bugs that cost real debugging time
-- **[BLENDER.md](BLENDER.md)** — sculpting rooms in Blender
+- **[BLENDER.md](BLENDER.md)**: sculpting rooms in Blender
 
 ## Example maps
 
@@ -95,5 +95,5 @@ and downloaded separately, not vendored.
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE). This covers the toolkit only, not the game it
+MIT. See [LICENSE](LICENSE). This covers the toolkit only, not the game it
 drives or any art you point it at.

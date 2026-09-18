@@ -103,35 +103,35 @@ you need geometry `box()` cannot express.
 ## `build.Map`
 
 ### Geometry
-- `add(brush)` — append a brush; order is CSG order.
+- `add(brush)`: append a brush; order is CSG order.
 
 ### Actors
-- `player_start(x, y, floor_z, clearance=8)` — a spawn standing on the floor.
-- `pickup(cls, x, y, floor_z)` — a weapon, ammo or powerup.
-- `path_node(x, y, floor_z)` — one bot waypoint.
-- `path_grid(x0, x1, y0, y1, floor_z, step=256)` — fill an area with
+- `player_start(x, y, floor_z, clearance=8)`: a spawn standing on the floor.
+- `pickup(cls, x, y, floor_z)`: a weapon, ammo or powerup.
+- `path_node(x, y, floor_z)`: one bot waypoint.
+- `path_grid(x0, x1, y0, y1, floor_z, step=256)`: fill an area with
   waypoints, **skipping any that would land inside an added solid**. Returns
   how many it placed.
-- `actor(cls, x, y, z, **props)` — any actor class, with UnrealScript
+- `actor(cls, x, y, z, **props)`: any actor class, with UnrealScript
   properties (`LightBrightness=128`, `Rotation="(Yaw=16384)"`).
-- `camera(x, y, z, yaw, pitch)` — a `SpectatorCam` viewpoint.
-- `viewpoint(x, y, z, yaw, pitch)` — replaces **all** PlayerStarts with one, at
+- `camera(x, y, z, yaw, pitch)`: a `SpectatorCam` viewpoint.
+- `viewpoint(x, y, z, yaw, pitch)`: replaces **all** PlayerStarts with one, at
   a known facing, so screenshots are reproducible. Inspection only: it removes
   the spawns a real match needs.
 
 ### Building
-- `check()` — returns a list of placement problems without building.
-- `build(paths=False, lights=True, validate=True)` — compile to `.unr`.
+- `check()`: returns a list of placement problems without building.
+- `build(paths=False, lights=True, validate=True)`: compile to `.unr`.
   Returns `(path, log)`. Pass `paths=True` to run `PATHS BUILD`.
 
 ### Looking at the result
-- `tour(name, shots=3)` — spectator, **bots forced off**, clean geometry shots.
-- `screenshot(name)` — a live deathmatch with bots.
-- `stats(log)` — pull the BSP numbers out of a build log.
+- `tour(name, shots=3)`: spectator, **bots forced off**, clean geometry shots.
+- `screenshot(name)`: a live deathmatch with bots.
+- `stats(log)`: pull the BSP numbers out of a build log.
 
 ## `items`
 
-Verified UT99 class names — the naming is inconsistent enough (`ut_biorifle`,
+Verified UT99 class names. The naming is inconsistent enough (`ut_biorifle`,
 `ripper`, `minigun2`, `Miniammo`) that guessing gets you silent no-ops.
 
 ```python
@@ -176,12 +176,12 @@ use", and it is where every figure in the scale table above came from.
 otherwise cost a full game launch each, because the engine reports them badly
 or not at all:
 
-- **A PlayerStart embedded in geometry** — UT99 aborts the entire game with
+- **A PlayerStart embedded in geometry**: UT99 aborts the entire game with
   `Failed to spawn player actor`, naming only one start per crash.
-- **A PathNode inside an added solid** — no error at all; the node silently
+- **A PathNode inside an added solid**: no error at all; the node silently
   drops out of the path network, and enough of them takes bot navigation to
   zero while the map still builds and plays.
-- **A misspelled texture** — no error; the face renders untextured and you find
+- **A misspelled texture**: no error; the face renders untextured and you find
   out by eye much later.
 
 Note that PlayerStarts and PathNodes carry `NavigationPoint`'s collision
@@ -203,7 +203,7 @@ grep -E "Built Paths|Added [0-9]+ reachspecs" <build log>
 **Nothing gets bigger when I add rooms.** Check the BSP node count across
 builds. If it stays flat, your brushes are landing on top of each other.
 
-**The map is dark, or blown out white.** `LightRadius` is *not* world units —
+**The map is dark, or blown out white.** `LightRadius` is *not* world units.
 Deck16's median light is brightness 128, radius **10**. Radii in the 40+ range
 flood a whole floor.
 
