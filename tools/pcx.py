@@ -126,9 +126,9 @@ class Texture:
 def ceiling_tile(size=256, tiles=4):
     """Suspended ceiling: a grid of light panels in metal runners."""
     t = Texture(size, size)
-    tile = t.color(178, 176, 168)
-    speck = t.color(166, 164, 156)
-    speck2 = t.color(190, 188, 180)
+    tile = t.color(140, 138, 130)
+    speck = t.color(128, 126, 120)
+    speck2 = t.color(152, 150, 142)
     runner = t.color(150, 150, 148)
     shadow = t.color(120, 120, 118)
     t.fill(tile)
@@ -163,9 +163,9 @@ def carpet(size=256, r=64, g=70, b=84):
 def cubicle_panel(size=256):
     """Fabric-covered partition with a plastic top rail."""
     t = Texture(size, size)
-    fabric = t.color(126, 130, 120)
-    d = t.color(112, 116, 107)
-    l = t.color(140, 144, 133)
+    fabric = t.color(96, 100, 92)
+    d = t.color(84, 88, 80)
+    l = t.color(110, 114, 104)
     rail = t.color(80, 80, 84)
     rail_hi = t.color(120, 120, 124)
     t.fill(fabric)
@@ -203,7 +203,7 @@ def whiteboard(size=256):
     return t
 
 
-def office_wall(size=256, r=150, g=146, b=136):
+def office_wall(size=256, r=104, g=100, b=92):
     """Painted drywall above a darker dado rail - standard corporate two-tone."""
     t = Texture(size, size)
     upper = t.color(r, g, b)
@@ -267,7 +267,7 @@ GENERATORS = {
     "OfCubicle": cubicle_panel,
     "OfWhiteboard": whiteboard,
     "OfWall": office_wall,
-    "OfWallBlue": lambda: office_wall(r=118, g=130, b=148),
+    "OfWallBlue": lambda: office_wall(r=78, g=88, b=104),
     "OfElevator": elevator_door,
     "OfLight": ceiling_light,
 }

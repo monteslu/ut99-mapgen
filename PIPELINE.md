@@ -34,6 +34,18 @@ biggest room 2048 x 1024 x 2048, median room height 512, **231 lights**.
   especially nasty because a map full of origin-stacked lights still looks
   *plausibly* lit, and a prop sitting on top of the camera reads as "my mesh
   scale is wrong" rather than "my actor never moved".
+- **`LevelInfo AmbientBrightness` is the biggest lever on how a map looks.**
+  Left unset, every surface renders near its full texture brightness and the
+  level is flat and washed out however carefully you place lights or however
+  dark you author the textures. Epic's DM-Codex sets 6 and renders at a mean
+  RGB of (54,46,34); the same office map with no ambient set rendered
+  (137,146,166) and with `AmbientBrightness=8` rendered (56,63,67).
+  Set it with `m.level_info(AmbientBrightness=8)` - note `MAP SETLEVELINFO`
+  looks like the right exec verb and reports Success but is a silent no-op;
+  the working route is `MAP IMPORTADD` of a LevelInfo with the same name.
+- **Movers work headlessly.** A brush actor of class `Mover` with `KeyPos(1)`
+  gives doors and lifts; they appear as `MoverNodes` in the build log rather
+  than adding to the static count. Stock maps carry 1-7 of them.
 - **UE1 `LightRadius` is NOT world units.** Deck16's median light is
   brightness 128, radius **10**; radii in the 40-50 range flood a whole floor
   and blow every surface to white. Match Epic: ~128 brightness, 12-24 radius,

@@ -31,6 +31,7 @@ class Map:
         self.name = name
         self.brushes = []
         self.actors = []
+        self.movers = []
         self.texture_packages = []
 
     def add(self, brush):
@@ -68,6 +69,46 @@ class Map:
         every space a bot should use."""
         self.actor("PathNode", x, y, floor_z + clearance)
 
+    def clear_spot(self, x, y, floor_z, search=420, clearance=8):
+        """Nearest point to (x, y) where a PlayerStart actually fits.
+
+        Spawns are the most fragile actor in a UT99 map: one embedded start
+        aborts the whole game at load. Rather than hand-tuning coordinates
+        against geometry that keeps moving, this spirals outwards from the
+        requested spot until the collision cylinder is clear, and returns None
+        if nowhere within `search` works.
+        """
+        z = floor_z + self.START_HEIGHT + clearance
+        subs = [b for b in self.brushes if b.csg != "CSG_Add"]
+        adds = [b for b in self.brushes if b.csg == "CSG_Add"]
+        r, h = self.START_RADIUS, self.START_HEIGHT
+
+        def ok(px, py):
+            if not any(_contains(b, px, py, z, r, h) for b in subs):
+                return False
+            return not any(_overlaps(b, px, py, z, r, h) for b in adds)
+
+        if ok(x, y):
+            return (x, y, z)
+        # Rings at 60-unit spacing, eight directions per ring: enough to step
+        # clear of a desk or a stair tread without wandering to another room.
+        for ring in range(60, search + 1, 60):
+            for dx, dy in ((1, 0), (0, 1), (-1, 0), (0, -1),
+                           (1, 1), (-1, 1), (1, -1), (-1, -1)):
+                px, py = x + dx * ring, y + dy * ring
+                if ok(px, py):
+                    return (px, py, z)
+        return None
+
+    def spawn(self, x, y, floor_z, clearance=8):
+        """A PlayerStart, nudged to the nearest spot it fits. Returns True if
+        it was placed."""
+        spot = self.clear_spot(x, y, floor_z, clearance=clearance)
+        if spot is None:
+            return False
+        self.actors.append(("PlayerStart", spot[0], spot[1], spot[2], {}))
+        return True
+
     def path_grid(self, x0, x1, y0, y1, floor_z, step=256, clearance=58):
         """Fill a walkable area with PathNodes, skipping any that would land
         inside an added solid.
@@ -78,13 +119,18 @@ class Map:
         """
         placed = 0
         z = floor_z + clearance
+        subs = [b for b in self.brushes if b.csg != "CSG_Add"]
         adds = [b for b in self.brushes if b.csg == "CSG_Add"]
+        r, h = self.START_RADIUS, self.START_HEIGHT
         x = x0
         while x <= x1:
             y = y0
             while y <= y1:
-                if not any(_overlaps(b, x, y, z, self.START_RADIUS,
-                                     self.START_HEIGHT) for b in adds):
+                # Skip anything that is not in open space: a grid laid over a
+                # whole floor inevitably overhangs its rooms at the edges and
+                # clips the furniture inside them.
+                if (any(_contains(b, x, y, z, r, h) for b in subs) and
+                        not any(_overlaps(b, x, y, z, r, h) for b in adds)):
                     self.actor("PathNode", int(x), int(y), int(z))
                     placed += 1
                 y += step
@@ -110,6 +156,61 @@ class Map:
         self.actors.append(("PlayerStart", x, y, z,
                             {"Rotation": f"(Yaw={int(yaw)},Pitch={int(pitch)})"}))
 
+        # A viewpoint inside geometry fails the spawn, the game never opens a
+        # window, and the screenshot silently comes back as whatever was on
+        # screen before - which reads as "my change had no effect".
+        subs = [b for b in self.brushes if b.csg != "CSG_Add"]
+        adds = [b for b in self.brushes if b.csg == "CSG_Add"]
+        r, h = self.START_RADIUS, self.START_HEIGHT
+        if subs and (not any(_contains(b, x, y, z, r, h) for b in subs)
+                     or any(_overlaps(b, x, y, z, r, h) for b in adds)):
+            raise ValueError(
+                f"viewpoint ({x},{y},{z}) is not in open space - the map will "
+                f"fail to spawn and the screenshot will be stale")
+
+    def mover(self, brush, dx=0, dy=0, dz=0, move_time=1.0, stay_open=2.5,
+              state="StandOpenTimed", **props):
+        """A brush that moves: a door, a lift, a rotating sign.
+
+        `dx/dy/dz` is the offset of the open position from the closed one.
+        The default state opens when a player bumps it and closes again after
+        `stay_open` seconds, which is what a door or a lift wants.
+
+        Movers are imported as brush actors of class Mover, so the geometry
+        travels with the actor rather than being carved into the BSP - that is
+        why a mover shows up as "MoverNodes" in the build log rather than
+        adding to the static node count.
+        """
+        self.movers.append((brush, (dx, dy, dz), move_time, stay_open,
+                            state, props))
+        return brush
+
+    def sound(self, x, y, z, name, radius=32, volume=128, pitch=64):
+        """An AmbientSound. Stock maps carry 1-19 of these; without any, a
+        level is silent apart from weapons, which reads as unfinished."""
+        self.actor("AmbientSound", x, y, z,
+                   AmbientSound=f"Sound'{name}'", SoundRadius=radius,
+                   SoundVolume=volume, SoundPitch=pitch)
+
+    def level_info(self, **props):
+        """Properties on the map's LevelInfo, chiefly its global ambient.
+
+        `AmbientBrightness` is the single biggest lever on how a map looks.
+        Left at the default, every surface renders near its full texture
+        brightness and the level is flat and washed out no matter what you do
+        with lights or how dark you author the textures. Epic's DM-Codex sets
+        6 (out of 255) and renders at a mean of (54,46,34); an unset map of the
+        same textures renders around (137,146,166).
+        """
+        self._level_props = getattr(self, "_level_props", {})
+        self._level_props.update(props)
+
+    def zone(self, x, y, z, **props):
+        """A ZoneInfo marks the leaf it sits in as its own zone, which gives
+        that space its own ambient light, fog and sound. Zones are also how UE1
+        culls: portals between zones let it skip everything beyond."""
+        self.actor("ZoneInfo", x, y, z, **props)
+
     def use_textures(self, *packages):
         """Load .utx packages explicitly. Usually unnecessary: build() loads
         whatever packages the faces actually reference."""
@@ -118,7 +219,7 @@ class Map:
     def referenced_packages(self):
         """Packages named by any face, in first-use order."""
         seen = []
-        for br in self.brushes:
+        for br in self.brushes + [m[0] for m in self.movers]:
             for p in br.polys:
                 if not p.texture:
                     continue
@@ -218,6 +319,49 @@ class Map:
                 fh.write("End Map\n")
             cmds.append(f'MAP IMPORTADD FILE="{actors_t3d}"')
 
+        # Movers carry their own brush, so they go in as brush actors of class
+        # Mover rather than as plain actors. Import them after the CSG: their
+        # geometry is not carved into the world, it rides on the actor.
+        if self.movers:
+            movers_t3d = os.path.join(WORK, f"{self.name}_movers.t3d")
+            chunks = []
+            for i, (br, (dx, dy, dz), mt, so, state, props) in \
+                    enumerate(self.movers):
+                body = br.to_t3d()
+                body = body.replace(
+                    f"Begin Actor Class=Brush Name={br.name}",
+                    f"Begin Actor Class=Mover Name=Mover{i}")
+                key = ",".join(f"{a}={v:.6f}" for a, v in
+                               (("X", dx), ("Y", dy), ("Z", dz)) if v)
+                extra = [f"MoveTime={mt:.6f}", f"StayOpenTime={so:.6f}",
+                         f'InitialState="{state}"']
+                if key:
+                    extra.append(f"KeyPos(1)=({key})")
+                extra += [f"{k}={v}" for k, v in props.items()]
+                body = body.replace(
+                    f"      CsgOper={br.csg}\n",
+                    "".join(f"      {e}\n" for e in extra))
+                chunks.append(body)
+            with open(movers_t3d, "w") as fh:
+                fh.write("Begin Map\n" + "\n".join(chunks) + "\nEnd Map\n")
+            cmds.append(f'MAP IMPORTADD FILE="{movers_t3d}"')
+
+        # LevelInfo already exists in every map; importing one with the same
+        # name merges these properties onto it. (`MAP SETLEVELINFO` looks like
+        # the right verb and reports Success, but is a silent no-op.) This has
+        # to happen BEFORE BUILDLIGHTS so the lightmaps are built against the
+        # ambient level actually being used.
+        props = getattr(self, "_level_props", {})
+        if props:
+            li = os.path.join(WORK, f"{self.name}_level.t3d")
+            with open(li, "w") as fh:
+                fh.write("Begin Map\nBegin Actor Class=LevelInfo "
+                         "Name=LevelInfo0\n")
+                for k, v in props.items():
+                    fh.write(f"    {k}={v}\n")
+                fh.write("End Actor\nEnd Map\n")
+            cmds.append(f'MAP IMPORTADD FILE="{li}"')
+
         cmds.append(f"BSP REBUILD {rebuild}")
         if lights:
             cmds.append("BSP BUILDLIGHTS")
@@ -307,7 +451,17 @@ def tour(map_name, out_dir=None, shots=6, wait=30, bots=0):
         time.sleep(wait)
         wid = _find_window(env)
         if not wid:
-            raise RuntimeError(f"no render window for {map_name}")
+            # A map whose spawn fails leaves the process alive in the crash
+            # handler with no window. Without this check the caller quietly
+            # screenshots whatever was already on screen, which reads as "the
+            # change had no effect" and is very hard to spot: several
+            # measurements in a row come back byte-identical.
+            alive = game.poll() is None
+            raise RuntimeError(
+                f"no render window for {map_name}"
+                + (" (process still alive - the map probably failed to spawn "
+                   "a player; check ~/.utpg/System/UnrealTournament.log)"
+                   if alive else " (the game exited)"))
         subprocess.run(["xdotool", "windowactivate", wid], env=env,
                        capture_output=True)
         subprocess.run(["xdotool", "windowraise", wid], env=env,

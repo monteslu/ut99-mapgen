@@ -213,6 +213,37 @@ check("actors keep the coordinates they were given",
       len(locs) >= 3 and any("400" in l for l in locs),
       f"{len(locs)} actors have a Location")
 
+# ---------------------------------------------------------------------------
+# 7. Movers must actually become movers.
+#    A Mover's geometry rides on the actor instead of being carved into the
+#    world, so it shows up as MoverNodes rather than static BSP nodes. If the
+#    class substitution silently failed it would import as an ordinary brush -
+#    still "Success", but a door that never opens.
+# ---------------------------------------------------------------------------
+m = Map("ST-Mover")
+m.add(room(-768, -768, 0, 768, 768, 384, "R"))
+m.player_start(-600, -600, floor_z=0)
+m.mover(box(-64, -8, 0, 64, 8, 192, texture=WALL, name="Door"), dy=120)
+m.actor("Light", 0, 0, 330, LightBrightness=140, LightRadius=20)
+log = m.build(validate=False)[1]
+mover_nodes = re.search(r"MoverNodes = (\d+)", log)
+check("a mover builds as a mover, not static geometry",
+      bool(mover_nodes) and int(mover_nodes.group(1)) > 0,
+      f"MoverNodes={mover_nodes.group(1) if mover_nodes else 'none'}")
+
+# Control: the same brush added normally must contribute ZERO mover nodes.
+m2 = Map("ST-NoMover")
+m2.add(room(-768, -768, 0, 768, 768, 384, "R"))
+m2.add(box(-64, -8, 0, 64, 8, 192, texture=WALL, name="Door",
+           csg="CSG_Add"))
+m2.player_start(-600, -600, floor_z=0)
+m2.actor("Light", 0, 0, 330, LightBrightness=140, LightRadius=20)
+log2 = m2.build(validate=False)[1]
+mn2 = re.search(r"MoverNodes = (\d+)", log2)
+check("control: a plain brush contributes no mover nodes",
+      bool(mn2) and int(mn2.group(1)) == 0,
+      f"MoverNodes={mn2.group(1) if mn2 else 'none'}")
+
 print()
 failed = [n for n, ok, _ in results if not ok]
 print(f"{len(results) - len(failed)}/{len(results)} passed")
